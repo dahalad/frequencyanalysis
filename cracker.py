@@ -3,6 +3,12 @@ import string
 import sys
 
 class Key:
+    """
+    Geneator to get next key sequence.
+    eg, chabi = Key('abcd')
+        next(chabi) ## returns a
+        next(chabi) ## retuns b, and then similarly c,d,a,b,c,d,........
+    """
     def __init__(self, key):
         self.key = key
         self.index = 0
@@ -20,6 +26,7 @@ class Key:
         return self.key[cindex % self.length]
 
 
+# Distribution of alphabets in english language
 englishLetterFreq = {
     'E': 12.70, 'T': 9.06, 'A': 8.17, 'O': 7.51, 'I': 6.97, 'N': 6.75,
     'S': 6.33, 'H': 6.09, 'R': 5.99, 'D': 4.25, 'L': 4.03, 'C': 2.78,
@@ -28,10 +35,16 @@ englishLetterFreq = {
     'Q': 0.10, 'Z': 0.07,
 }
 
+# Set of lower case letters
 LETTERS = string.ascii_lowercase
 
 
 def getFactors(num):
+    """
+    Gets the factors of a number
+    :param num: integer
+    :return: factors of input
+    """
     allfactors = [num]
     n = num
     pfactors = []
@@ -66,6 +79,12 @@ def getFactors(num):
 
 
 def shifter(block,key):
+    """
+    Shifts a block of text by a given key
+    :param block: text to be shifted
+    :param key: key to shift
+    :return: shifted text
+    """
     k = LETTERS.find(key)
     shifted = ''
     for i in block:
@@ -76,6 +95,11 @@ def shifter(block,key):
 
 
 def getScore(block):
+    """
+    Gets the frequency distribution score of etaoin and vkjxqz
+    :param block: text block
+    :return: frequency score
+    """
     score = 0
     lettercount = getFrequencyOrder(block)
     ks = list(lettercount.keys())
@@ -91,6 +115,11 @@ def getScore(block):
 
 
 def combine(lister):
+    """
+    Combines possible individual keys to a single key
+    :param lister: list of keys of each partition, ie, if the key of length 5, there are 5 partitions
+    :return: combined full possible keys
+    """
     k = []
     for item in lister[0]:
         k.append(item)
@@ -106,7 +135,12 @@ def combine(lister):
 
 
 def bruteforce(block):
-    # letters = string.ascii_lowercase
+    """
+    Bruteforces the text block with all 26 letters (keys) and get frequency score for each key.
+    Returns the key with highest score
+    :param block: text block
+    :return: best key
+    """
     best_key, best_score = '',0
     for i in LETTERS:
         shifted = shifter(block,i)
@@ -121,6 +155,12 @@ def bruteforce(block):
 
 
 def partitionTheCipher(block, kl):
+    """
+    Divides the cipher text into segments that is equal to the length of key tried
+    :param block: text block
+    :param kl: key length
+    :return: partitioned text as dictionary
+    """
     partitions = {}
     for i in range(kl):
         part = ''.join(i for i in block[i::kl])
@@ -129,6 +169,12 @@ def partitionTheCipher(block, kl):
 
 
 def sortDict(values, dict):
+    """
+    Sorts the elements of dictionary in ascending descinding order of their values' values
+    :param values: values of dictionary
+    :param dict: dict
+    :return: sorted dictionary
+    """
     orderedFreqCount = {}
     for val in values:
         for k, v in dict.items():
@@ -138,6 +184,11 @@ def sortDict(values, dict):
 
 
 def getProbableKeyLengths(repeatDict):
+    """
+    Gets probable key lengths for the cipher text based on the repititions seen the ciphertext
+    :param repeatDict: dictionary containing the repitition sequences
+    :return: probble key lengths as list
+    """
     repeatList = []
     for repeatLists in repeatDict.values():
         repeatList += repeatLists
@@ -151,13 +202,17 @@ def getProbableKeyLengths(repeatDict):
         count = allfactors.count(fac)
         counts[fac] = count
     counts = sortDict(sorted(counts.values(), reverse=True),counts)
-    # print(list(counts.keys()))
     rtnval = list(counts.keys())
     return list(filter(lambda x: x>3, rtnval))
 
 
 
 def getRepeatedSequence(block):
+    """
+    Goes through the ciphertext and gets all the repeat sequences
+    :param block: text block
+    :return: repeat sequences
+    """
     repeatedSequences = {}
     for kl in range(4, 7):
         for sequeceStart in range(len(block) - kl):
@@ -184,6 +239,12 @@ def getRepeatedSequence(block):
 
 
 def getplainText(cipher, key):
+    """
+    get decrypted letter
+    :param cipher: cipher text letter
+    :param key: key letter
+    :return: decrypted letter
+    """
     c = LETTERS.find(cipher) + 1
     k = LETTERS.find(key) + 1
     diff = c-k
@@ -192,6 +253,11 @@ def getplainText(cipher, key):
 
 
 def getLetterCount(block):
+    """
+    Counts the occurance of all letters in the text block
+    :param block: text block
+    :return: letter counts as dictionary
+    """
     letterCount = {}
     for letter in LETTERS:
         letterCount[letter] = block.count(letter)
@@ -199,6 +265,9 @@ def getLetterCount(block):
 
 
 def getFrequencyOrder(block):
+    """ Get the ordered dictionary of letters and their occurances
+    :param block: text block
+    """
     letterFreqCount = getLetterCount(block)
     vals = sorted(set(letterFreqCount.values()), reverse=True)
     orderedFreqCount = sortDict(vals, letterFreqCount)
@@ -206,24 +275,32 @@ def getFrequencyOrder(block):
     return orderedFreqCount
 
 
-# corpora = "bpxtbogeinlwbyhwpohlfthwuqkmnjhwnaivjgqhnakisqpchwdvekdrncbljoomwgmytvosoihrpwjluqhrkqbpjhhfvvqsunrrhgqsvikxpuxjgguetvkizfraigqxigbkfvrpeujdxujdx"
 corpora = input("Your Text: ")
 cipherText = corpora.lower()
+# Take only the alphabetic characters
 cipherText = "".join(l for l in cipherText if l.isalnum())
 
+# Get repeatition lengths
 repeatitions = getRepeatedSequence(cipherText)
+# If there is no any repeats in the cipher, this module doesn't work; so exit
 if not repeatitions:
     print("Sorry!, I can't decode this!!")
     sys.exit(0)
+
+# Get probable key lengths from repeat lengths
 probableKeyLengths = getProbableKeyLengths(repeatitions)
 
+# Do for each probable key length
 for ran in probableKeyLengths:
+    # Partition the cipher text
     partitions = partitionTheCipher(cipherText,ran)
     keysss = []
+    # Get individual possible keys for each partition
     for v in partitions.values():
         keysss.append(bruteforce(v))
+    # Combine individual keys to a full key
     fkeys = combine(keysss)
-
+    # Try each full key, to get decrpt the cipher until one works or all keys are exhausted
     for ks in fkeys:
         ch = Key(ks)
         pText = ''
@@ -234,3 +311,4 @@ for ran in probableKeyLengths:
         if reply == 'y':
             print("Thank you for using this module.!! The key was ", ch.key)
             sys.exit(0)
+    print("Sorry! I couldn't decrypt this message. ")
